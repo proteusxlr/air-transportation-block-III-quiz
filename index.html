@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Transportation (Block III)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom styles for correct/incorrect answers */
+        .answer-option {
+            transition: background-color 0.3s ease;
+        }
+        .correct-answer {
+            background-color: #d1fae5; /* Green 100 */
+            border-color: #34d399; /* Green 400 */
+        }
+        .incorrect-answer {
+            background-color: #fee2e2; /* Red 100 */
+            border-color: #ef4444; /* Red 400 */
+        }
+        .disabled-radio:disabled + label {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal-content {
+            max-height: 90vh; /* Limit height to prevent overflow */
+            overflow-y: auto; /* Enable scrolling if content exceeds height */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
+
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-lg mb-8 border border-gray-200">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Air Transportation (Block III)</h1>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container">
+            <!-- Question Display -->
+            <div id="question-display" class="bg-indigo-50 p-4 rounded-lg mb-6 border border-indigo-200 shadow-sm">
+                <p class="text-lg font-semibold text-indigo-800 mb-2" id="question-text"></p>
+                <div id="options-container" class="space-y-3">
+                    <!-- Answer options will be injected here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Quiz Controls -->
+            <div class="flex flex-col sm:flex-row justify-between gap-4">
+                <button id="submit-btn" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition duration-300 ease-in-out shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold">
+                    Submit Answer
+                </button>
+                <button id="next-btn" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition duration-300 ease-in-out shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-semibold">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <!-- End of Quiz Section -->
+        <div id="end-quiz-section" class="hidden mt-8 text-center bg-purple-50 p-6 rounded-lg border border-purple-200 shadow-sm">
+            <h2 class="text-2xl font-bold text-purple-800 mb-4">Quiz Completed!</h2>
+            <p class="text-xl text-gray-700 mb-4">Your Score: <span id="final-score" class="font-extrabold text-blue-700"></span></p>
+            <p class="text-lg text-gray-600 mb-6">Average Score (All Attempts): <span id="average-score" class="font-extrabold text-green-700"></span></p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="review-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md font-semibold">
+                    Review Answers
+                </button>
+                <button id="restart-btn" class="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition duration-300 ease-in-out shadow-md font-semibold">
+                    Take Another Quiz
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="review-modal" class="fixed inset-0 hidden flex items-center justify-center z-50 modal-overlay p-4">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-3xl modal-content border border-gray-300">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 class="text-2xl font-bold text-gray-800">Quiz Review</h3>
+                <button id="close-review-modal" class="text-gray-500 hover:text-gray-700 text-3xl font-semibold leading-none">&times;</button>
+            </div>
+            <div id="review-content" class="space-y-6">
+                <!-- Review content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data
+        const questions = [
+            {
+                question: "What is Expedited Code 999?",
+                options: [
+                    { text: "Will move ahead of all other shipments within a specific branch.", isCorrect: false },
+                    { text: "Used for shipments containing biologicals or other medical supplies.", isCorrect: false },
+                    { text: "Will place special emphasis on the shipment and place it above all other priorities. A Red and White sticker.", isCorrect: true },
+                    { text: "Used for aircraft parts and recovery equipment.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What type of cargo will move ahead of all other shipments within a specific branch?",
+                options: [
+                    { text: "Green Sheet", isCorrect: true },
+                    { text: "Purple Sheet", isCorrect: false },
+                    { text: "Expedited Code 999", isCorrect: false },
+                    { text: "Emergency Shipments", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which process is utilized to expedite the movement of specific shipments of national interest or operational necessity?",
+                options: [
+                    { text: "Green Sheet", isCorrect: false },
+                    { text: "Purple Sheet", isCorrect: true },
+                    { text: "Emergency Shipments", isCorrect: false },
+                    { text: "AMC MICAP/VVIP", isCorrect: false }
+                ]
+            },
+            {
+                question: "Purple Sheet needs approval from who?",
+                options: [
+                    { text: "AMC Form 281 & ACA", isCorrect: false },
+                    { text: "Technical escorts & medical laboratory personnel", isCorrect: false },
+                    { text: "Combatant Command (COCOM) & ACA", isCorrect: true },
+                    { text: "Load Team Chiefs & aircraft maintenance", isCorrect: false }
+                ]
+            },
+            {
+                question: "What types of expedited shipments does NOT need ACA approval?",
+                options: [
+                    { text: "Purple Sheet & Green Sheet", isCorrect: false },
+                    { text: "Emergency Shipments & AMC MICAP/VVIP", isCorrect: true },
+                    { text: "Expedited Code 999 & Purple Sheet", isCorrect: false },
+                    { text: "All expedited shipments require ACA approval.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What will be annotated on the manifest of emergency shipments?",
+                options: [
+                    { text: "PRIORITY MOVEMENT", isCorrect: false },
+                    { text: "CRITICAL CARGO", isCorrect: false },
+                    { text: "LIFE OR DEATH URGENCY", isCorrect: true },
+                    { text: "HAZMAT ON BOARD", isCorrect: false }
+                ]
+            },
+            {
+                question: "What form will be attached to AMC MICAP/VVIP?",
+                options: [
+                    { text: "AMC Form 281", isCorrect: true },
+                    { text: "DD Form 1387-2", isCorrect: false },
+                    { text: "AMC Form 106", isCorrect: false },
+                    { text: "DD Form 1502", isCorrect: false }
+                ]
+            },
+            {
+                question: "What do Emergency Shipments contain?",
+                options: [
+                    { text: "Aircraft parts and recovery equipment required to get an aircraft back into operation.", isCorrect: false },
+                    { text: "Confidential documents.", isCorrect: false },
+                    { text: "Routine medical supplies.", isCorrect: false },
+                    { text: "Biologicals or other medical supplies of such urgency that human life is dependent upon immediate receipt.", isCorrect: true }
+                ]
+            },
+            {
+                question: "What do AMC MICAP/VVIP shipments contain?",
+                options: [
+                    { text: "Biologicals or other medical supplies of such urgency that human life is dependent upon immediate receipt.", isCorrect: false },
+                    { text: "Classified information.", isCorrect: false },
+                    { text: "Aircraft parts and recovery equipment required to get an aircraft back into operation.", isCorrect: true },
+                    { text: "Routine cargo.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is DD Form 1387-2?",
+                options: [
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false },
+                    { text: "Frozen Medical Material Shipment", isCorrect: false },
+                    { text: "Special Handling Data/Certification", isCorrect: true },
+                    { text: "Shippers Declaration for Dangerous Goods (SDDG)", isCorrect: false }
+                ]
+            },
+            {
+                question: "Cargo may be classified at different levels such as:",
+                options: [
+                    { text: "Light, Medium, Heavy", isCorrect: false },
+                    { text: "Low, Medium, High", isCorrect: false },
+                    { text: "Urgent, Priority, Routine", isCorrect: false },
+                    { text: "Unclassified, Confidential, Secret, or Top Secret", isCorrect: true }
+                ]
+            },
+            {
+                question: "Security requirements for classified shipments are identified by the:",
+                options: [
+                    { text: "Aerial porters", isCorrect: false },
+                    { text: "Load Team Chiefs", isCorrect: false },
+                    { text: "Consignor and a DD Form 1387-2", isCorrect: true },
+                    { text: "ATOC", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who can receipt for classified shipments?",
+                options: [
+                    { text: "Any military personnel", isCorrect: false },
+                    { text: "US Military personnel and US civilian air terminal representatives", isCorrect: true },
+                    { text: "Only individuals with Top Secret clearance", isCorrect: false },
+                    { text: "Anyone with a common access card.", isCorrect: false }
+                ]
+            },
+            {
+                question: "To deal with the shipment's designated classification you must possess what?",
+                options: [
+                    { text: "A valid driver's license.", isCorrect: false },
+                    { text: "A common access card.", isCorrect: false },
+                    { text: "Certification in hazardous materials handling.", isCorrect: false },
+                    { text: "A security clearance equal to, or higher", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is AMC Form 106?",
+                options: [
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false },
+                    { text: "HAZMAT Inspection and Acceptance Checklist", isCorrect: false },
+                    { text: "Shippers Declaration for Dangerous Goods (SDDG)", isCorrect: false },
+                    { text: "Monthly Station Traffic Handling Report", isCorrect: true }
+                ]
+            },
+            {
+                question: "All refrigeration units are maintained between:",
+                options: [
+                    { text: "0 and 32 degrees Fahrenheit", isCorrect: false },
+                    { text: "47 and 50 degrees Fahrenheit", isCorrect: false },
+                    { text: "-4 and 1 degrees Fahrenheit", isCorrect: false },
+                    { text: "36 and 46 degrees Fahrenheit", isCorrect: true }
+                ]
+            },
+            {
+                question: "All freezer units are maintained between:",
+                options: [
+                    { text: "36 and 46 degrees Fahrenheit", isCorrect: false },
+                    { text: "-4 and 1 degrees Fahrenheit", isCorrect: true },
+                    { text: "0 and 32 degrees Fahrenheit", isCorrect: false },
+                    { text: "47 and 50 degrees Fahrenheit", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is DD Form 1502?",
+                options: [
+                    { text: "Chilled Medical Material Shipment", isCorrect: false },
+                    { text: "Limited Unrefrigerated Medical Material Shipment", isCorrect: false },
+                    { text: "Special Handling Data/Certification", isCorrect: false },
+                    { text: "Frozen Medical Material Shipment", isCorrect: true }
+                ]
+            },
+            {
+                question: "Frozen shipments must be stored in what?",
+                options: [
+                    { text: "Refrigeration unit or cooler with wet ice.", isCorrect: false },
+                    { text: "Ambient temperature storage.", isCorrect: false },
+                    { text: "Freezer or container with dry ice.", isCorrect: true },
+                    { text: "Open air, protected from direct sunlight.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is DD Form 1502-1?",
+                options: [
+                    { text: "Frozen Medical Material Shipment", isCorrect: false },
+                    { text: "Limited Unrefrigerated Medical Material Shipment", isCorrect: false },
+                    { text: "Chilled Medical Material Shipment", isCorrect: true },
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false }
+                ]
+            },
+            {
+                question: "Whole Blood must be kept chilled? True or False?",
+                options: [
+                    { text: "True", isCorrect: true },
+                    { text: "False", isCorrect: false }
+                ]
+            },
+            {
+                question: "What will personnel use to re-ice a shipment that needs to be kept chilled?",
+                options: [
+                    { text: "Dry ice", isCorrect: false },
+                    { text: "Gel-freeze", isCorrect: false },
+                    { text: "Wet ice", isCorrect: true },
+                    { text: "Salted wet ice", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is DD Form 1502-2?",
+                options: [
+                    { text: "Frozen Medical Material Shipment", isCorrect: false },
+                    { text: "Chilled Medical Material Shipment", isCorrect: false },
+                    { text: "Limited Unrefrigerated Medical Material Shipment", isCorrect: true },
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is Specific Re-icing Restrictions?",
+                options: [
+                    { text: "Rules on how often re-icing is required.", isCorrect: false },
+                    { text: "Certain types of cargo can only be opened and re-iced by qualified personnel due to the risk they pose to an untrained member.", isCorrect: true },
+                    { text: "Limitations on the amount of ice that can be used.", isCorrect: false },
+                    { text: "Restrictions on who can request re-icing.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Non-hazardous Shipments:",
+                options: [
+                    { text: "Cannot be opened by Special Handling personnel.", isCorrect: false },
+                    { text: "Require specialized tools to be re-iced.", isCorrect: false },
+                    { text: "May be opened, re-iced and resealed by Special Handling personnel.", isCorrect: true },
+                    { text: "Must only be opened by technical escorts.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who may open, check, or reseal infectious substances?",
+                options: [
+                    { text: "Any Special Handling personnel.", isCorrect: false },
+                    { text: "Load Team Chiefs.", isCorrect: false },
+                    { text: "Technical escorts, medical laboratory, and medical supply personnel.", isCorrect: true },
+                    { text: "Commanders.", isCorrect: false }
+                ]
+            },
+            {
+                question: "When can aerial porters open biological substances?",
+                options: [
+                    { text: "At any time if they have a security clearance.", isCorrect: false },
+                    { text: "Only when a medical professional is present.", isCorrect: false },
+                    { text: "When closing instructions are provided.", isCorrect: true },
+                    { text: "Never.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What must not be used when re-icing whole blood?",
+                options: [
+                    { text: "Wet ice", isCorrect: false },
+                    { text: "Dry ice, salted wet ice or Gel-freeze", isCorrect: true },
+                    { text: "Any type of ice", isCorrect: false },
+                    { text: "Only ice from a specific source.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is HAZMAT?",
+                options: [
+                    { text: "Any substance that can cause a minor inconvenience.", isCorrect: false },
+                    { text: "Materials that are difficult to transport.", isCorrect: false },
+                    { text: "Substances that are visually unappealing.", isCorrect: false },
+                    { text: "A substance or material that is capable of posing an unreasonable risk to health, safety, and property when transported.", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is AFMAN 24-604?",
+                options: [
+                    { text: "Guidelines for aircraft loading.", isCorrect: false },
+                    { text: "Procedures for classified cargo.", isCorrect: false },
+                    { text: "Preparing Hazardous Materials for Military Air Shipments.", isCorrect: true },
+                    { text: "Forklift operating instructions.", isCorrect: false }
+                ]
+            },
+            {
+                question: "How must the Commanders assign you to one of the 4 functional groups?",
+                options: [
+                    { text: "Verbally", isCorrect: false },
+                    { text: "Via email", isCorrect: false },
+                    { text: "In writing", isCorrect: true },
+                    { text: "Based on experience", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who are the 'Handlers' among the hazardous material functional groups?",
+                options: [
+                    { text: "Personnel that package hazardous materials.", isCorrect: false },
+                    { text: "Individuals who inspect hazardous materials packages.", isCorrect: false },
+                    { text: "Warehouse workers, aircraft load teams, pallet build-up personnel and other individuals who routinely come into contact with hazardous materials.", isCorrect: true },
+                    { text: "Personnel who complete and sign the SDDG.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who are the 'Packers' among the hazardous material functional groups?",
+                options: [
+                    { text: "Personnel that package hazardous materials, but DO NOT prepare or sign legally binding documents.", isCorrect: true },
+                    { text: "Individuals who inspect hazardous materials packages.", isCorrect: false },
+                    { text: "Warehouse workers, aircraft load teams, pallet build-up personnel.", isCorrect: false },
+                    { text: "Personnel who complete and sign the SDDG.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who inspects the package and AMC Form 1033, using the AMC Form 1015?",
+                options: [
+                    { text: "Packer", isCorrect: false },
+                    { text: "Preparer (Certifier)", isCorrect: false },
+                    { text: "Handler", isCorrect: false },
+                    { text: "Inspector", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is AMC Form 1015?",
+                options: [
+                    { text: "Shippers Declaration for Dangerous Goods (SDDG)", isCorrect: false },
+                    { text: "HAZMAT Inspection and Acceptance Checklist", isCorrect: true },
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false },
+                    { text: "Monthly Station Traffic Handling Report", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is AMC Form 1033?",
+                options: [
+                    { text: "HAZMAT Inspection and Acceptance Checklist", isCorrect: false },
+                    { text: "Shippers Declaration for Dangerous Goods (SDDG)", isCorrect: true },
+                    { text: "Biological/Re-icing/Refrigeration log", isCorrect: false },
+                    { text: "Monthly Station Traffic Handling Report", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who completes and signs the SDDG?",
+                options: [
+                    { text: "Inspector", isCorrect: false },
+                    { text: "Packer", isCorrect: false },
+                    { text: "Handler", isCorrect: false },
+                    { text: "Preparer (Certifier)", isCorrect: true }
+                ]
+            },
+            {
+                question: "How often is refresher training required for hazard material personnel?",
+                options: [
+                    { text: "Annually", isCorrect: false },
+                    { text: "24 month intervals", isCorrect: true },
+                    { text: "Every 6 months", isCorrect: false },
+                    { text: "As needed", isCorrect: false }
+                ]
+            },
+            {
+                question: "What are the 4 basic hazardous materials training that are applicable to all personnel?",
+                options: [
+                    { text: "First aid, communication, record keeping, and safety.", isCorrect: false },
+                    { text: "Driving, lifting, packing, and inspecting.", isCorrect: false },
+                    { text: "Hazardous material general awareness and familiarization, safety procedures to include emergency response, function specific responsibilities directly relevant to the individual's role in hazardous materials transportation, and security awareness.", isCorrect: true },
+                    { text: "Shipping, receiving, inventory, and disposal.", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many classes are hazardous material broken down into? Identified by what shape?",
+                options: [
+                    { text: "5; Square", isCorrect: false },
+                    { text: "7; Circle", isCorrect: false },
+                    { text: "9; Diamond", isCorrect: true },
+                    { text: "12; Triangle", isCorrect: false }
+                ]
+            },
+            {
+                question: "Not all hazardous cargo is________________",
+                options: [
+                    { text: "Heavy", isCorrect: false },
+                    { text: "Fragile", isCorrect: false },
+                    { text: "Compatible", isCorrect: true },
+                    { text: "Liquid", isCorrect: false }
+                ]
+            },
+            {
+                question: "Where will the placards be placed when placarding an aircraft?",
+                options: [
+                    { text: "Only on the rear.", isCorrect: false },
+                    { text: "Only on the front.", isCorrect: false },
+                    { text: "Only on the wingtips.", isCorrect: false },
+                    { text: "Front, rear, and both wingtips.", isCorrect: true }
+                ]
+            },
+            {
+                question: "What are Placards?",
+                options: [
+                    { text: "Instructions for loading cargo.", isCorrect: false },
+                    { text: "Warning signs, used during aircraft loading/off-loading operations that alert aerial personnel and emergency responders to the presence of HAZMAT.", isCorrect: true },
+                    { text: "Labels for specific types of cargo.", isCorrect: false },
+                    { text: "Documents indicating cargo origin.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who is responsible for ensuring the placards are placed correctly on the aircraft during HAZMAT loading or off loading operations?",
+                options: [
+                    { text: "The pilot", isCorrect: false },
+                    { text: "The inspector", isCorrect: false },
+                    { text: "The packer", isCorrect: false },
+                    { text: "Load Team Chiefs", isCorrect: true }
+                ]
+            },
+            {
+                question: "What are the three components every type of forklift has to lift cargo?",
+                options: [
+                    { text: "Engine, wheels, and steering wheel.", isCorrect: false },
+                    { text: "Seat, controls, and lights.", isCorrect: false },
+                    { text: "Mast, carriage and tines (forks).", isCorrect: true },
+                    { text: "Counterweight, frame, and canopy.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What allows the forklift to move the cargo up and down?",
+                options: [
+                    { text: "Mast", isCorrect: true },
+                    { text: "Carriage", isCorrect: false },
+                    { text: "Tines", isCorrect: false },
+                    { text: "Engine", isCorrect: false }
+                ]
+            },
+            {
+                question: "What travels on the mast and is used to support cargo?",
+                options: [
+                    { text: "Mast", isCorrect: false },
+                    { text: "Carriage", isCorrect: true },
+                    { text: "Tines", isCorrect: false },
+                    { text: "Counterweight", isCorrect: false }
+                ]
+            },
+            {
+                question: "What carries the cargo on a forklift?",
+                options: [
+                    { text: "Mast", isCorrect: false },
+                    { text: "Carriage", isCorrect: false },
+                    { text: "Tines", isCorrect: true },
+                    { text: "Engine", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which forklift is primarily designed for warehouse use?",
+                options: [
+                    { text: "4K Forklift", isCorrect: true },
+                    { text: "10K Standard Forklift", isCorrect: false },
+                    { text: "10K AT Forklift", isCorrect: false },
+                    { text: "Warehouse Tug", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the lift capacity and height of a 4K Forklift?",
+                options: [
+                    { text: "Lift loads weighing up to 10,000 lbs to a height of 150 inches.", isCorrect: false },
+                    { text: "Lift loads weighing up to 4,000 lbs to a height of 144 inches.", isCorrect: true },
+                    { text: "Lift loads weighing up to 10,000 lbs to a height of 75 inches.", isCorrect: false },
+                    { text: "Lift loads weighing up to 40,000 lbs.", isCorrect: false }
+                ]
+            },
+            {
+                question: "How do you adjust the tines on a 4K Forklift?",
+                options: [
+                    { text: "Manually adjust the tines before picking up a load.", isCorrect: false },
+                    { text: "Hydraulically adjust from inside the cab.", isCorrect: true },
+                    { text: "It has automatic tine adjustment.", isCorrect: false },
+                    { text: "The tines are fixed.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The 4K's carriage also has the ability to _________ right and left to line the tines up with the load more accurately.",
+                options: [
+                    { text: "Tilt", isCorrect: false },
+                    { text: "Rotate", isCorrect: false },
+                    { text: "Side shift", isCorrect: true },
+                    { text: "Extend", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which forklift is used to load and unload aircraft, highline docks, K-loaders, and trucks with palletized cargo?",
+                options: [
+                    { text: "4K Forklift", isCorrect: false },
+                    { text: "10K Standard Forklift", isCorrect: true },
+                    { text: "10K AT Forklift", isCorrect: false },
+                    { text: "Warehouse Tug", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the lift capacity and height of a 10K Standard Forklift?",
+                options: [
+                    { text: "Lift a max weight of 4,000 lbs and a max height of 144 inches.", isCorrect: false },
+                    { text: "Lift a max weight of 10,000 lbs. and a max height of 150 inches.", isCorrect: true },
+                    { text: "Lift a max weight of 10,000 lbs and a height of 75 inches.", isCorrect: false },
+                    { text: "Lift a max weight of 25,000 lbs and rise to 220 inches.", isCorrect: false }
+                ]
+            },
+            {
+                question: "How does the 10K standard forklift adjust the tine width?",
+                options: [
+                    { text: "Manually from outside the cab.", isCorrect: false },
+                    { text: "Hydraulically from inside the cab.", isCorrect: true },
+                    { text: "It has automatic tine adjustment.", isCorrect: false },
+                    { text: "The tines are fixed.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What two forklifts have a low ground clearance making it ideal only for flat paved surfaces?",
+                options: [
+                    { text: "10K AT Forklift and Warehouse Tug", isCorrect: false },
+                    { text: "10K Standard and 10K AT Forklift", isCorrect: false },
+                    { text: "4K Forklift and 10K Standard", isCorrect: true },
+                    { text: "Warehouse Tug and 4K Forklift", isCorrect: false }
+                ]
+            },
+            {
+                question: "What forklift has a minimal field of view in the front due to a large mast and carriage, making it necessary to drive in reverse?",
+                options: [
+                    { text: "4K Forklift", isCorrect: false },
+                    { text: "10K Standard Forklift", isCorrect: true },
+                    { text: "10K AT Forklift", isCorrect: false },
+                    { text: "Warehouse Tug", isCorrect: false }
+                ]
+            },
+            {
+                question: "The 10K AT (All Terrain) is designed primarily for the use during ________,__________, and ____________ operations.",
+                options: [
+                    { text: "Warehouse, everyday, and training.", isCorrect: false },
+                    { text: "Routine, standard, and non-combat.", isCorrect: false },
+                    { text: "Wartime, deployment, and contingency.", isCorrect: true },
+                    { text: "Maintenance, inspection, and repair.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the lift capacity and height of a 10K AT Forklift?",
+                options: [
+                    { text: "Capable of lifting 4,000 lbs to a height of 144 inches.", isCorrect: false },
+                    { text: "Capable of lifting 10,000 lbs to a height of 150 inches.", isCorrect: false },
+                    { text: "Capable of lifting 10,000 lbs to a height of 75 inches.", isCorrect: true },
+                    { text: "Capable of lifting 25,000 lbs to a height of 220 inches.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The 10K AT cannot __________________ like the 4K and 10K standard forklifts.",
+                options: [
+                    { text: "Lift loads", isCorrect: false },
+                    { text: "Move forward", isCorrect: false },
+                    { text: "Side shift using hydraulic controls", isCorrect: true },
+                    { text: "Turn corners", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the primary purpose of a Warehouse Tug?",
+                options: [
+                    { text: "Lift and stack pallets.", isCorrect: false },
+                    { text: "Tow rolling stock that is not self-propelled.", isCorrect: true },
+                    { text: "Load and unload aircraft.", isCorrect: false },
+                    { text: "Transport personnel.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The tug is equipped with front and rear ________________ attachments.",
+                options: [
+                    { text: "Lifting", isCorrect: false },
+                    { text: "Steering", isCorrect: false },
+                    { text: "Pintle hook", isCorrect: true },
+                    { text: "Braking", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max towing capacity of a Warehouse Tug?",
+                options: [
+                    { text: "Up to 10,000 lbs", isCorrect: false },
+                    { text: "Up to 25,000 lbs", isCorrect: false },
+                    { text: "Up to 40,000 lbs", isCorrect: false },
+                    { text: "Up to 60,000 lbs", isCorrect: true }
+                ]
+            },
+            {
+                question: "The operator for a warehouse tug is responsible for what?",
+                options: [
+                    { text: "Ensuring the tug is fueled.", isCorrect: false },
+                    { text: "Checking the weight of rolling stock before towing begins.", isCorrect: true },
+                    { text: "Directing aircraft movement.", isCorrect: false },
+                    { text: "Maintaining the tug's engine.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The max speed for the warehouse tug while towing is:",
+                options: [
+                    { text: "5 MPH", isCorrect: false },
+                    { text: "10 MPH", isCorrect: true },
+                    { text: "15 MPH", isCorrect: false },
+                    { text: "20 MPH", isCorrect: false }
+                ]
+            },
+            {
+                question: "Always remember to exercise _________________ while operating the warehouse tug.",
+                options: [
+                    { text: "Speed", isCorrect: false },
+                    { text: "Force", isCorrect: false },
+                    { text: "Risk management (RM)", isCorrect: true },
+                    { text: "Agility", isCorrect: false }
+                ]
+            },
+            {
+                question: "____________ are special purpose vehicles used to transport, load and unload palletized cargo to and from highline docks and aircraft.",
+                options: [
+                    { text: "Forklifts", isCorrect: false },
+                    { text: "Warehouse Tugs", isCorrect: false },
+                    { text: "K-loaders", isCorrect: true },
+                    { text: "Aircraft", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many 463L pallet positions does a 25K Halvorsen have?",
+                options: [
+                    { text: "One", isCorrect: false },
+                    { text: "Two", isCorrect: true },
+                    { text: "Three", isCorrect: false },
+                    { text: "Six", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max capacity and height for a 25K Halvorsen?",
+                options: [
+                    { text: "Carry a max of 10,000 lbs and rise to 150 inches.", isCorrect: false },
+                    { text: "Carry a max of 60,000 lbs and a height of 222 inches.", isCorrect: false },
+                    { text: "Carry a max of 25,000 lbs and rise to 220 inches.", isCorrect: true },
+                    { text: "Carry a max of 40,000 lbs.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The 25K Halvorsen is equipped with _____________ and ___________, operated by the driver.",
+                options: [
+                    { text: "Mechanized rollers and mechanized pallet stops", isCorrect: true },
+                    { text: "Manual rollers and manual pallet stops", isCorrect: false },
+                    { text: "Forklifts and cranes", isCorrect: false },
+                    { text: "Chains and hooks", isCorrect: false }
+                ]
+            },
+            {
+                question: "The Halvorsen also has ___________ pallet rails and pallet locks on the deck to allow for loading both aerial delivery system (ADS) and logistics (LGS) pallets.",
+                options: [
+                    { text: "Fixed", isCorrect: false },
+                    { text: "Standard", isCorrect: false },
+                    { text: "Adjustable", isCorrect: true },
+                    { text: "Non-removable", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which K-loader can accommodate more pallets and reach greater heights than other loaders?",
+                options: [
+                    { text: "25K Halvorsen", isCorrect: false },
+                    { text: "60K Tunner", isCorrect: true },
+                    { text: "Both", isCorrect: false },
+                    { text: "Neither", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many 463L pallet positions does a 60K Tunner have?",
+                options: [
+                    { text: "Three", isCorrect: false },
+                    { text: "Four", isCorrect: false },
+                    { text: "Five", isCorrect: false },
+                    { text: "Six", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is the max capacity and height for a 60K Tunner?",
+                options: [
+                    { text: "Can carry a max weight of 25,000 lbs and a height of 220 inches.", isCorrect: false },
+                    { text: "Can carry a max weight of 40,000 lbs and a height of 150 inches.", isCorrect: false },
+                    { text: "Can carry a max weight of 60,000 lbs and a height of 222 inches.", isCorrect: true },
+                    { text: "Can carry a max weight of 100,000 lbs and a height of 300 inches.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The side shift capability on the 60K allows the front and rear to shift independently; this is known as _______",
+                options: [
+                    { text: "Pitching", isCorrect: false },
+                    { text: "Rolling", isCorrect: false },
+                    { text: "Yawing", isCorrect: true },
+                    { text: "Tilting", isCorrect: false }
+                ]
+            },
+            {
+                question: "The 60K features __________ steering, which allows for a tighter steering radius.",
+                options: [
+                    { text: "Standard", isCorrect: false },
+                    { text: "Fixed", isCorrect: false },
+                    { text: "Articulated", isCorrect: true },
+                    { text: "Rear-wheel", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which two can invert the roller trays, making a clear deck to accommodate rolling stock movement?",
+                options: [
+                    { text: "4K Forklift and 10K Standard", isCorrect: false },
+                    { text: "10K AT Forklift and Warehouse Tug", isCorrect: false },
+                    { text: "25K Halvorsen and 60K Tunner", isCorrect: true },
+                    { text: "All K-loaders", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which documents are generated by Load Planning to sequence the load?",
+                options: [
+                    { text: "AMC Form 1015, AMC Form 1033, and AMC Form 281", isCorrect: false },
+                    { text: "DD Form 1387-2, DD Form 1502, and AMC Form 106", isCorrect: false },
+                    { text: "ICODES, AF Form 4080, and GATES", isCorrect: true },
+                    { text: "WRS, AMC Form 82, and AMC Form 56", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is ICODES Load Plan?",
+                options: [
+                    { text: "A manual load plan without a diagram.", isCorrect: false },
+                    { text: "A diagram of the inside cargo compartment of the aircraft from a top down prospective.", isCorrect: true },
+                    { text: "A list of all cargo selected for movement.", isCorrect: false },
+                    { text: "A form for special handling data.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is AF Form 4080?",
+                options: [
+                    { text: "Load Sequence Breakdown Worksheet", isCorrect: true },
+                    { text: "HAZMAT Inspection and Acceptance Checklist", isCorrect: false },
+                    { text: "Shippers Declaration for Dangerous Goods (SDDG)", isCorrect: false },
+                    { text: "Monthly Station Traffic Handling Report", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is a manual load plan and does not contain a diagram?",
+                options: [
+                    { text: "ICODES Load Plan", isCorrect: false },
+                    { text: "AF Form 4080", isCorrect: true },
+                    { text: "GATES Load-Pull Sheet", isCorrect: false },
+                    { text: "DD Form 1387-2", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is GATES Load-Pull Sheet?",
+                options: [
+                    { text: "A diagram of the inside cargo compartment of the aircraft.", isCorrect: false },
+                    { text: "A manual load plan.", isCorrect: false },
+                    { text: "Lists of all cargo selected for movement.", isCorrect: true },
+                    { text: "A form for aircraft handling data.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who uses the GATES load-pull sheet to locate and pull cargo from bay or grid locations to set-up for loading?",
+                options: [
+                    { text: "Load Planning personnel", isCorrect: false },
+                    { text: "ATOC personnel", isCorrect: false },
+                    { text: "Ramp Services Personnel", isCorrect: true },
+                    { text: "Aircraft Maintenance personnel", isCorrect: false }
+                ]
+            },
+            {
+                question: "When determining the quantity and type of MHE needed to ensure maximum utilization and efficient use of the following resources:",
+                options: [
+                    { text: "Number of personnel, vehicle types, and weather.", isCorrect: false },
+                    { text: "Speed of operations, cargo weight, and aircraft type.", isCorrect: false },
+                    { text: "Fuel use/cost, number of trips required, time, size of the load teams and being mindful of available resources.", isCorrect: true },
+                    { text: "Safety regulations, environmental impact, and communication.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Full vehicle inspections take place at the __________ of each shift.",
+                options: [
+                    { text: "End", isCorrect: false },
+                    { text: "Middle", isCorrect: false },
+                    { text: "Beginning", isCorrect: true },
+                    { text: "Random times", isCorrect: false }
+                ]
+            },
+            {
+                question: "All aircraft must be capable of what type of travel?",
+                options: [
+                    { text: "Regional", isCorrect: false },
+                    { text: "Domestic", isCorrect: false },
+                    { text: "Global", isCorrect: true },
+                    { text: "Short-range", isCorrect: false }
+                ]
+            },
+            {
+                question: "What are the main requirements that are essential to rapid global mobility?",
+                options: [
+                    { text: "To transport only passengers and be easily reconfigured.", isCorrect: false },
+                    { text: "To be able to land on short runways and carry oversized cargo.", isCorrect: false },
+                    { text: "To transport cargo and/or passengers, and be compatible with the 463L master pallet system.", isCorrect: true },
+                    { text: "To be fuel efficient and have low maintenance requirements.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which aircraft is the most versatile and capable aircraft?",
+                options: [
+                    { text: "C-17", isCorrect: true },
+                    { text: "C-5", isCorrect: false },
+                    { text: "C-130H", isCorrect: false },
+                    { text: "B-747", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can a C-130H transport?",
+                options: [
+                    { text: "4", isCorrect: false },
+                    { text: "5", isCorrect: false },
+                    { text: "6", isCorrect: true },
+                    { text: "8", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet positions 1-4 on a C-130H?",
+                options: [
+                    { text: "8,500 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: false },
+                    { text: "10,355 lbs", isCorrect: true },
+                    { text: "7,500 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet position 5 on a C-130H?",
+                options: [
+                    { text: "10,355 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: true },
+                    { text: "7,500 lbs", isCorrect: false },
+                    { text: "8,500 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet position 6 on a C-130H?",
+                options: [
+                    { text: "10,355 lbs", isCorrect: false },
+                    { text: "8,500 lbs", isCorrect: false },
+                    { text: "7,500 lbs", isCorrect: true },
+                    { text: "4,664 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "The C-130H can carry a max of _____ passengers using only the sidewall seats and _____ using centerline seats.",
+                options: [
+                    { text: "54, 102", isCorrect: false },
+                    { text: "62, 138", isCorrect: false },
+                    { text: "73, 0", isCorrect: true },
+                    { text: "41, 90", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can a C-130J transport?",
+                options: [
+                    { text: "6", isCorrect: false },
+                    { text: "7", isCorrect: false },
+                    { text: "8", isCorrect: true },
+                    { text: "11", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet positions 1-6 on a C-130J?",
+                options: [
+                    { text: "8,500 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: false },
+                    { text: "10,355 lbs", isCorrect: true },
+                    { text: "7,500 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet position 7 on a C-130J?",
+                options: [
+                    { text: "10,355 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: true },
+                    { text: "7,500 lbs", isCorrect: false },
+                    { text: "8,500 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet position 8 on a C-130J?",
+                options: [
+                    { text: "10,355 lbs", isCorrect: false },
+                    { text: "8,500 lbs", isCorrect: true },
+                    { text: "7,500 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "The C-130J has the capability of carrying up to _____ passengers with only its sidewall seats and ______ using centerline seats.",
+                options: [
+                    { text: "41, 90", isCorrect: false },
+                    { text: "54, 102", isCorrect: true },
+                    { text: "73, 0", isCorrect: false },
+                    { text: "62, 138", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which aircraft is the most flexible cargo aircraft in the DoD inventory, capable of rapid delivery of troops and cargo directly to deployment environments?",
+                options: [
+                    { text: "C-130H", isCorrect: false },
+                    { text: "C-5", isCorrect: false },
+                    { text: "C-17", isCorrect: true },
+                    { text: "B-747", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can a C-17 transport in LGS?",
+                options: [
+                    { text: "11", isCorrect: false },
+                    { text: "15", isCorrect: false },
+                    { text: "18", isCorrect: true },
+                    { text: "36", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can a C-17 transport in ADS?",
+                options: [
+                    { text: "18", isCorrect: false },
+                    { text: "15", isCorrect: true },
+                    { text: "11", isCorrect: false },
+                    { text: "36", isCorrect: false }
+                ]
+            },
+            {
+                question: "On what plane do all pallet positions have a max height of 96\" and a max weight of 10,355 lbs?",
+                options: [
+                    { text: "C-130H", isCorrect: false },
+                    { text: "C-130J", isCorrect: false },
+                    { text: "C-17", isCorrect: true },
+                    { text: "C-5", isCorrect: false }
+                ]
+            },
+            {
+                question: "The C-17 has the capability of carrying up to _____ passengers with only its sidewall seats and ____ using centerline seats.",
+                options: [
+                    { text: "41, 90", isCorrect: false },
+                    { text: "54, 102", isCorrect: false },
+                    { text: "62, 138", isCorrect: false },
+                    { text: "73, 0", isCorrect: true }
+                ]
+            },
+            {
+                question: "Which aircraft is the largest cargo aircraft in the DoD fleet, and can be loaded through the front and rear cargo doors?",
+                options: [
+                    { text: "C-130J", isCorrect: false },
+                    { text: "C-17", isCorrect: false },
+                    { text: "C-5", isCorrect: true },
+                    { text: "B-747", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can a C-5 hold?",
+                options: [
+                    { text: "18", isCorrect: false },
+                    { text: "25", isCorrect: false },
+                    { text: "30", isCorrect: false },
+                    { text: "36", isCorrect: true }
+                ]
+            },
+            {
+                question: "What pallet positions are your front and rear loading ramps on a C-5?",
+                options: [
+                    { text: "1, 2, 3, 4", isCorrect: false },
+                    { text: "10, 11, 12, 13", isCorrect: false },
+                    { text: "1, 2, 35, 36", isCorrect: true },
+                    { text: "33, 34, 35, 36", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the weight of pallet positions 1, 2, 35, 36 on a C-5?",
+                options: [
+                    { text: "10,355 lbs", isCorrect: true },
+                    { text: "8,500 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: false },
+                    { text: "7,500 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the max weight of pallet positions 3-34 on a C-5?",
+                options: [
+                    { text: "7,500 lbs", isCorrect: true },
+                    { text: "8,500 lbs", isCorrect: false },
+                    { text: "4,664 lbs", isCorrect: false },
+                    { text: "10,355 lbs", isCorrect: false }
+                ]
+            },
+            {
+                question: "All ramp pallets require what on a C-5?",
+                options: [
+                    { text: "Special tie-downs.", isCorrect: false },
+                    { text: "Extra bracing.", isCorrect: false },
+                    { text: "Only non-hazardous cargo.", isCorrect: false },
+                    { text: "A 14\" aisle way.", isCorrect: true }
+                ]
+            },
+            {
+                question: "The C-5 Galaxy contains separate troop compartment for passengers, which holds _____ passengers.",
+                options: [
+                    { text: "41", isCorrect: false },
+                    { text: "54", isCorrect: false },
+                    { text: "62", isCorrect: false },
+                    { text: "73", isCorrect: true }
+                ]
+            },
+            {
+                question: "Which aircraft was the first wide-bodied commercial airliner ever produced?",
+                options: [
+                    { text: "C-17", isCorrect: false },
+                    { text: "C-5", isCorrect: false },
+                    { text: "C-130", isCorrect: false },
+                    { text: "B-747", isCorrect: true }
+                ]
+            },
+            {
+                question: "How many passengers can a B-747 carry?",
+                options: [
+                    { text: "102", isCorrect: false },
+                    { text: "138", isCorrect: false },
+                    { text: "300", isCorrect: false },
+                    { text: "608", isCorrect: true }
+                ]
+            },
+            {
+                question: "How many pallets is a B-747 capable of transporting?",
+                options: [
+                    { text: "18", isCorrect: false },
+                    { text: "36", isCorrect: false },
+                    { text: "42", isCorrect: true },
+                    { text: "60", isCorrect: false }
+                ]
+            },
+            {
+                question: "How many pallets can the main cargo deck of a B-747 hold?",
+                options: [
+                    { text: "9", isCorrect: false },
+                    { text: "18", isCorrect: false },
+                    { text: "25", isCorrect: false },
+                    { text: "33", isCorrect: true }
+                ]
+            },
+            {
+                question: "How are the remaining 9 pallets split between two lower belly compartments on a B-747?",
+                options: [
+                    { text: "3 front belly and 6 in the aft belly.", isCorrect: false },
+                    { text: "4 front belly and 5 in the aft belly.", isCorrect: false },
+                    { text: "5 front belly and 4 in the aft belly.", isCorrect: true },
+                    { text: "6 front belly and 3 in the aft belly.", isCorrect: false }
+                ]
+            },
+            {
+                question: "On what planes can you only perform EROs?",
+                options: [
+                    { text: "B-747, C-5, C-17", isCorrect: false },
+                    { text: "C-130, C-17, C-5", isCorrect: true },
+                    { text: "C-130, B-747, C-5", isCorrect: false },
+                    { text: "All aircraft are capable of EROs.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who is responsible for coordinating and approving ERO support at aerial ports?",
+                options: [
+                    { text: "Load Team Chief", isCorrect: false },
+                    { text: "Aircraft Maintenance", isCorrect: false },
+                    { text: "ATOC", isCorrect: true },
+                    { text: "User personnel", isCorrect: false }
+                ]
+            },
+            {
+                question: "For EROs what is mandatory?",
+                options: [
+                    { text: "Earplugs only", isCorrect: false },
+                    { text: "Hard hats", isCorrect: false },
+                    { text: "High-visibility vests", isCorrect: false },
+                    { text: "Safety goggles", isCorrect: true }
+                ]
+            },
+            {
+                question: "Who must ensure that the load team has all of their PPE?",
+                options: [
+                    { text: "Aircraft Maintenance", isCorrect: false },
+                    { text: "User personnel", isCorrect: false },
+                    { text: "Load Team Chief", isCorrect: true },
+                    { text: "ATOC", isCorrect: false }
+                ]
+            },
+            {
+                question: "Name the 3 sections that form a ground support element.",
+                options: [
+                    { text: "Pilots, flight attendants, and ground crew.", isCorrect: false },
+                    { text: "ATOC, Load Planning, and Special Handling.", isCorrect: false },
+                    { text: "Load team, aircraft maintenance and user personnel.", isCorrect: true },
+                    { text: "Ramp Services, Cargo Processing, and Fleet Services.", isCorrect: false }
+                ]
+            },
+            {
+                question: "The load team consists of how many people?",
+                options: [
+                    { text: "2", isCorrect: false },
+                    { text: "3", isCorrect: true },
+                    { text: "4", isCorrect: false },
+                    { text: "5", isCorrect: false }
+                ]
+            },
+            {
+                question: "Load teams' main responsibility is what?",
+                options: [
+                    { text: "Fueling the aircraft.", isCorrect: false },
+                    { text: "Performing aircraft inspections.", isCorrect: false },
+                    { text: "Safe loading/off-loading of cargo and passengers.", isCorrect: true },
+                    { text: "Communicating with air traffic control.", isCorrect: false }
+                ]
+            },
+            {
+                question: "Which section of the Ground Support Element has the responsibility of parking aircraft?",
+                options: [
+                    { text: "Load team", isCorrect: false },
+                    { text: "Aircraft Maintenance", isCorrect: true },
+                    { text: "User personnel", isCorrect: false },
+                    { text: "ATOC", isCorrect: false }
+                ]
+            },
+            {
+                question: "How will the Load Team Chief signal to the loadmaster that the load team and equipment are all clear of the aircraft?",
+                options: [
+                    { text: "Waving arms", isCorrect: false },
+                    { text: "Verbal confirmation", isCorrect: false },
+                    { text: "Flashing lights", isCorrect: false },
+                    { text: "Thumbs up", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is the minimum safety distance required for a C-130?",
+                options: [
+                    { text: "25ft", isCorrect: false },
+                    { text: "50ft", isCorrect: true },
+                    { text: "100ft", isCorrect: false },
+                    { text: "200ft", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the minimum safety distance required for a C-17?",
+                options: [
+                    { text: "25ft", isCorrect: true },
+                    { text: "50ft", isCorrect: false },
+                    { text: "100ft", isCorrect: false },
+                    { text: "200ft", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the minimum safety distance required for a C-5?",
+                options: [
+                    { text: "25ft", isCorrect: false },
+                    { text: "50ft", isCorrect: false },
+                    { text: "100ft", isCorrect: false },
+                    { text: "200ft", isCorrect: true }
+                ]
+            },
+            {
+                question: "When will ramp pallets be loaded during ERO operations?",
+                options: [
+                    { text: "First, before any passengers.", isCorrect: false },
+                    { text: "Anytime during the operation.", isCorrect: false },
+                    { text: "Once all passengers are on board.", isCorrect: false },
+                    { text: "They are never loaded during ERO operations.", isCorrect: true }
+                ]
+            },
+            {
+                question: "What system and what form is used to compile monthly APS and AMS workload data for resource management?",
+                options: [
+                    { text: "GATES & AMC Form 108", isCorrect: false },
+                    { text: "ICODES & AMC Form 65", isCorrect: false },
+                    { text: "WRS & AMC Form 82", isCorrect: false },
+                    { text: "AFMAN 24-604 & AMC Form 56", isCorrect: true }
+                ]
+            },
+            {
+                question: "By what time and day must the APS and AMS prepare the WRS report?",
+                options: [
+                    { text: "0800Z on the first day of the month.", isCorrect: true },
+                    { text: "1200Z on the 15th day of the month.", isCorrect: false },
+                    { text: "2400Z on the last day of the month.", isCorrect: false },
+                    { text: "1700Z on the last business day of the month.", isCorrect: false }
+                ]
+            },
+            {
+                question: "When must the completed report need to be approved and entered into the WRS by?",
+                options: [
+                    { text: "5th day of the month", isCorrect: true },
+                    { text: "10th day of the month", isCorrect: false },
+                    { text: "20th day of the month", isCorrect: false },
+                    { text: "Last day of the month", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is AMC Form 56?",
+                options: [
+                    { text: "Reserviced Workload", isCorrect: false },
+                    { text: "Passenger Rehandled Workload", isCorrect: false },
+                    { text: "Aircraft Handled by Type", isCorrect: false },
+                    { text: "Rehandled Workload", isCorrect: true }
+                ]
+            },
+            {
+                question: "Who may NOT use AMC Form 56?",
+                options: [
+                    { text: "ATOC and Ramp Services", isCorrect: false },
+                    { text: "Cargo Processing and Load Planning", isCorrect: false },
+                    { text: "Special Handling", isCorrect: true },
+                    { text: "Fleet and Passenger Services", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is AMC Form 65?",
+                options: [
+                    { text: "Rehandled Workload", isCorrect: false },
+                    { text: "Passenger Rehandled Workload", isCorrect: false },
+                    { text: "Aircraft Handled by Type", isCorrect: false },
+                    { text: "Reserviced Workload", isCorrect: true }
+                ]
+            },
+            {
+                question: "Which form is designed to provide Fleet Service management with an overview of re-servicing workload?",
+                options: [
+                    { text: "AMC Form 56", isCorrect: false },
+                    { text: "AMC Form 82", isCorrect: false },
+                    { text: "AMC Form 65", isCorrect: true },
+                    { text: "AMC Form 108", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is AMC Form 108?",
+                options: [
+                    { text: "Rehandled Workload", isCorrect: false },
+                    { text: "Reserviced Workload", isCorrect: false },
+                    { text: "Aircraft Handled by Type", isCorrect: false },
+                    { text: "Passenger Rehandled Workload", isCorrect: true }
+                ]
+            },
+            {
+                question: "Which form is designed to provide Passenger Service management with an overview of their re-handled passenger workload?",
+                options: [
+                    { text: "AMC Form 56", isCorrect: false },
+                    { text: "AMC Form 65", isCorrect: false },
+                    { text: "AMC Form 82", isCorrect: false },
+                    { text: "AMC Form 108", isCorrect: true }
+                ]
+            },
+            {
+                question: "What is AMC Form 85?",
+                options: [
+                    { text: "Rehandled Workload", isCorrect: false },
+                    { text: "Reserviced Workload", isCorrect: false },
+                    { text: "Passenger Rehandled Workload", isCorrect: false },
+                    { text: "Aircraft Handled by Type", isCorrect: true }
+                ]
+            },
+            {
+                question: "ATOC completes an AMC Form 85 when during the month?",
+                options: [
+                    { text: "Weekly", isCorrect: false },
+                    { text: "Monthly", isCorrect: true },
+                    { text: "Daily", isCorrect: false },
+                    { text: "Bi-weekly", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is ERO?",
+                options: [
+                    { text: "Engine-running-off-loads/on-loads", isCorrect: true },
+                    { text: "Emergency Repair Operations", isCorrect: false },
+                    { text: "Equipment Readiness Oversight", isCorrect: false },
+                    { text: "Expedited Route Optimization", isCorrect: false }
+                ]
+            },
+            {
+                question: "What are the user personnel responsibilities during an ERO?",
+                options: [
+                    { text: "Operating MHE.", isCorrect: false },
+                    { text: "Directing aircraft.", isCorrect: false },
+                    { text: "Deploying unit and their cargo.", isCorrect: true },
+                    { text: "Providing safety briefings.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is the AMC FORM 82?",
+                options: [
+                    { text: "Aircraft Handled by Type", isCorrect: false },
+                    { text: "Passenger Rehandled Workload", isCorrect: false },
+                    { text: "Monthly Station Traffic Handling Report", isCorrect: true },
+                    { text: "Rehandled Workload", isCorrect: false }
+                ]
+            },
+            {
+                question: "What does WRS stand for?",
+                options: [
+                    { text: "Warehouse Reporting System", isCorrect: false },
+                    { text: "Workload Reference System", isCorrect: false },
+                    { text: "Workload Reporting System", isCorrect: true },
+                    { text: "Weather Reporting System", isCorrect: false }
+                ]
+            },
+            {
+                question: "What is a computer system the aerial ports use to turn in the required documents for review and submission to HQ/A4TI?",
+                options: [
+                    { text: "GATES", isCorrect: false },
+                    { text: "ICODES", isCorrect: false },
+                    { text: "Workload Reporting System", isCorrect: true },
+                    { text: "AMC Form 82", isCorrect: false }
+                ]
+            },
+            {
+                question: "Aircraft augment the DoD's airlift capacity, but they are not a replacement for military assets, nor will they be tasked to assume the same operational risk level.",
+                options: [
+                    { text: "Civil Reserve Air Fleet (CRAF)", isCorrect: true },
+                    { text: "Commercial Airline Partnership (CAP)", isCorrect: false },
+                    { text: "Department of Defense Airlift Program (DDAP)", isCorrect: false },
+                    { text: "Military Airlift Command (MAC)", isCorrect: false }
+                ]
+            },
+            {
+                question: "Who uses the AMC Form 56?",
+                options: [
+                    { text: "Only Passenger Services.", isCorrect: false },
+                    { text: "Only Fleet Services.", isCorrect: false },
+                    { text: "ATOC, Load Planning, and Passenger Services.", isCorrect: false },
+                    { text: "ATOC, Ramp Services, Cargo Processing, Load Planning, and Special Handling.", isCorrect: true }
+                ]
+            },
+            {
+                question: "What does ERO briefing include?",
+                options: [
+                    { text: "Fuel levels, weather updates, and flight plans.", isCorrect: false },
+                    { text: "Passenger count, cargo weight, and aircraft maintenance status.", isCorrect: false },
+                    { text: "Hand signals, the route personnel will use to get to the aircraft, load team positions, type of cargo being loaded/off-loaded, specific on/off-loading instructions, and use of MHE.", isCorrect: true },
+                    { text: "History of EROs, theoretical scenarios, and general safety rules.", isCorrect: false }
+                ]
+            },
+            {
+                question: "What are the ERO personnel approach procedures?",
+                options: [
+                    { text: "Approach the aircraft as soon as it lands.", isCorrect: false },
+                    { text: "Always approach from the front of the aircraft.", isCorrect: false },
+                    { text: "Approach the aircraft only if signaled by the Load Team Chief.", isCorrect: false },
+                    { text: "Do not approach the aircraft until all engines are in low speed ground idle and do not approach the aircraft until signaled by an aircraft member.", isCorrect: true }
+                ]
+            }
+        ];
+
+        // DOM Elements
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const quizContainer = document.getElementById('quiz-container');
+        const endQuizSection = document.getElementById('end-quiz-section');
+        const finalScoreSpan = document.getElementById('final-score');
+        const averageScoreSpan = document.getElementById('average-score');
+        const reviewBtn = document.getElementById('review-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const reviewModal = document.getElementById('review-modal');
+        const reviewContent = document.getElementById('review-content');
+        const closeReviewModalBtn = document.getElementById('close-review-modal');
+
+        // Quiz State Variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let userAnswers = []; // Stores objects like { question: {}, selectedOption: {}, isCorrect: boolean, correctAnswer: {} }
+        let quizAttemptScores = JSON.parse(localStorage.getItem('quizAttemptScores')) || []; // Load past scores from localStorage
+
+        /**
+         * Shuffles an array randomly.
+         * @param {Array} array The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+            return array;
+        }
+
+        /**
+         * Initializes the quiz: shuffles questions, resets state, and displays the first question.
+         */
+        function initializeQuiz() {
+            shuffledQuestions = shuffleArray([...questions]); // Create a shallow copy to shuffle
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+
+            quizContainer.classList.remove('hidden');
+            endQuizSection.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden'); // Next button hidden initially
+
+            displayQuestion();
+            calculateAndDisplayAverageScore();
+        }
+
+        /**
+         * Displays the current question and its shuffled options.
+         */
+        function displayQuestion() {
+            const question = shuffledQuestions[currentQuestionIndex];
+            if (!question) {
+                console.error("No question found at current index.");
+                return;
+            }
+
+            questionText.textContent = `${currentQuestionIndex + 1}. ${question.question}`;
+            optionsContainer.innerHTML = ''; // Clear previous options
+
+            const shuffledOptions = shuffleArray([...question.options]); // Shuffle options for current question
+
+            shuffledOptions.forEach((option, index) => {
+                const optionId = `option-${currentQuestionIndex}-${index}`;
+                const div = document.createElement('div');
+                div.classList.add('relative', 'flex', 'items-center', 'answer-option', 'p-3', 'rounded-lg', 'border', 'border-gray-300', 'cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `question-${currentQuestionIndex}`;
+                radio.id = optionId;
+                radio.value = option.text;
+                radio.classList.add('sr-only', 'peer'); // sr-only for screen readers, peer for Tailwind styling
+
+                const label = document.createElement('label');
+                label.htmlFor = optionId;
+                label.textContent = option.text;
+                label.classList.add('flex-grow', 'text-gray-700', 'font-medium', 'cursor-pointer');
+
+                // Visual indicator for selected radio (custom styling)
+                const customRadioIndicator = document.createElement('div');
+                customRadioIndicator.classList.add(
+                    'w-5', 'h-5', 'rounded-full', 'border-2', 'border-blue-400', 'mr-3', 'flex', 'items-center', 'justify-center',
+                    'peer-checked:bg-blue-600', 'peer-checked:border-blue-600', 'transition-all', 'duration-200', 'ease-in-out'
+                );
+                const innerCircle = document.createElement('div');
+                innerCircle.classList.add('w-2.5', 'h-2.5', 'rounded-full', 'bg-white', 'opacity-0', 'peer-checked:opacity-100', 'transition-opacity', 'duration-200', 'ease-in-out');
+                customRadioIndicator.appendChild(innerCircle);
+
+                div.appendChild(radio);
+                div.appendChild(customRadioIndicator);
+                div.appendChild(label);
+                optionsContainer.appendChild(div);
+
+                // Enable submit button if an option is selected
+                radio.addEventListener('change', () => {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('disabled:opacity-50');
+                });
+            });
+
+            submitBtn.disabled = true; // Disable submit until an option is chosen
+            submitBtn.classList.add('disabled:opacity-50');
+        }
+
+        /**
+         * Handles the submission of an answer.
+         */
+        function handleSubmitAnswer() {
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const selectedOptionInput = document.querySelector(`input[name="question-${currentQuestionIndex}"]:checked`);
+
+            if (!selectedOptionInput) {
+                console.warn("No answer selected.");
+                return; // Should not happen if submit button is disabled
+            }
+
+            const selectedAnswerText = selectedOptionInput.value;
+            const selectedOptionElement = selectedOptionInput.closest('.answer-option');
+            const correctAnswer = currentQuestion.options.find(opt => opt.isCorrect);
+            const isCorrect = selectedAnswerText === correctAnswer.text;
+
+            // Apply visual feedback
+            if (isCorrect) {
+                selectedOptionElement.classList.add('correct-answer');
+                score++;
+            } else {
+                selectedOptionElement.classList.add('incorrect-answer');
+                // Highlight the correct answer if the user was wrong
+                const correctOptionElement = Array.from(optionsContainer.children).find(div => {
+                    const label = div.querySelector('label');
+                    return label && label.textContent === correctAnswer.text;
+                });
+                if (correctOptionElement) {
+                    correctOptionElement.classList.add('correct-answer');
+                }
+            }
+
+            // Lock answers: Disable all radio buttons for this question
+            const radioInputs = document.querySelectorAll(`input[name="question-${currentQuestionIndex}"]`);
+            radioInputs.forEach(radio => {
+                radio.disabled = true;
+                radio.classList.add('disabled-radio'); // Add custom class for more styling control if needed
+                radio.nextElementSibling.classList.add('opacity-50', 'cursor-not-allowed'); // Dim custom radio indicator
+            });
+
+            submitBtn.classList.add('hidden'); // Hide submit button
+            nextBtn.classList.remove('hidden'); // Show next button
+
+            // Store user's answer for review
+            userAnswers.push({
+                question: currentQuestion.question,
+                options: currentQuestion.options.map(o => o.text), // Store texts only
+                selectedAnswer: selectedAnswerText,
+                correctAnswer: correctAnswer.text,
+                isCorrect: isCorrect
+            });
+        }
+
+        /**
+         * Moves to the next question or ends the quiz if all questions are answered.
+         */
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                displayQuestion();
+                submitBtn.classList.remove('hidden'); // Show submit button for next question
+                nextBtn.classList.add('hidden'); // Hide next button
+                submitBtn.disabled = true; // Disable submit until an option is chosen
+                submitBtn.classList.add('disabled:opacity-50');
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz, displays final score, and shows end-of-quiz options.
+         */
+        function endQuiz() {
+            quizContainer.classList.add('hidden');
+            endQuizSection.classList.remove('hidden');
+
+            const percentage = ((score / shuffledQuestions.length) * 100).toFixed(2);
+            finalScoreSpan.textContent = `${score} / ${shuffledQuestions.length} (${percentage}%)`;
+
+            quizAttemptScores.push(score);
+            saveScores(); // Save updated scores to localStorage
+            calculateAndDisplayAverageScore();
+        }
+
+        /**
+         * Calculates and displays the average score from all quiz attempts.
+         */
+        function calculateAndDisplayAverageScore() {
+            if (quizAttemptScores.length === 0) {
+                averageScoreSpan.textContent = "N/A";
+                return;
+            }
+            const totalScoreSum = quizAttemptScores.reduce((sum, currentScore) => sum + currentScore, 0);
+            const totalPossibleScore = quizAttemptScores.length * questions.length; // Assuming all quizzes have same number of questions
+            const averagePercentage = (totalScoreSum / totalPossibleScore * 100).toFixed(2);
+            averageScoreSpan.textContent = `${averagePercentage}%`;
+        }
+
+        /**
+         * Saves quiz attempt scores to localStorage.
+         */
+        function saveScores() {
+            localStorage.setItem('quizAttemptScores', JSON.stringify(quizAttemptScores));
+        }
+
+        /**
+         * Displays the post-test review modal.
+         */
+        function showReview() {
+            reviewContent.innerHTML = ''; // Clear previous review content
+            userAnswers.forEach((qa, index) => {
+                const reviewItem = document.createElement('div');
+                reviewItem.classList.add('p-4', 'rounded-lg', 'border', 'mb-4', qa.isCorrect ? 'border-green-300' : 'border-red-300', 'bg-white', 'shadow-sm');
+
+                reviewItem.innerHTML = `
+                    <p class="font-semibold text-lg text-gray-800 mb-2">${index + 1}. ${qa.question}</p>
+                    <ul class="list-disc ml-5 text-gray-700 space-y-1">
+                        ${qa.options.map(option => `
+                            <li class="${option === qa.selectedAnswer ? (qa.isCorrect ? 'text-green-700 font-bold' : 'text-red-700 font-bold') : ''}
+                                       ${option === qa.correctAnswer && !qa.isCorrect ? 'text-green-700 font-bold' : ''}">
+                                ${option}
+                                ${option === qa.selectedAnswer ? ' (Your Answer)' : ''}
+                                ${option === qa.correctAnswer && option !== qa.selectedAnswer ? ' (Correct Answer)' : ''}
+                                ${option === qa.selectedAnswer && qa.isCorrect ? ' &#10003;' : ''} <!-- Checkmark for correct selected -->
+                                ${option === qa.selectedAnswer && !qa.isCorrect ? ' &#10006;' : ''} <!-- X mark for incorrect selected -->
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                reviewContent.appendChild(reviewItem);
+            });
+            reviewModal.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the post-test review modal.
+         */
+        function closeReview() {
+            reviewModal.classList.add('hidden');
+        }
+
+        // Event Listeners
+        submitBtn.addEventListener('click', handleSubmitAnswer);
+        nextBtn.addEventListener('click', handleNextQuestion);
+        restartBtn.addEventListener('click', initializeQuiz);
+        reviewBtn.addEventListener('click', showReview);
+        closeReviewModalBtn.addEventListener('click', closeReview);
+        reviewModal.addEventListener('click', (e) => { // Close modal when clicking outside content
+            if (e.target === reviewModal) {
+                closeReview();
+            }
+        });
+
+        // Initialize the quiz when the page loads
+        document.addEventListener('DOMContentLoaded', initializeQuiz);
+    </script>
+</body>
+</html>
